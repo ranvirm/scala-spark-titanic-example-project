@@ -1,5 +1,4 @@
-import DataCleaner.CleanData
-import org.apache.spark.ml.feature.Bucketizer
+import org.apache.spark.ml.feature.{Bucketizer, OneHotEncoderEstimator, StringIndexer}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.{split, when}
 
@@ -8,10 +7,36 @@ import org.apache.spark.sql.functions.{split, when}
 object FeatureEngineering {
 
   // function that returns a data frame with added  features
-  def FeatureData(): DataFrame = {
+  def featureData(dataFrame: DataFrame): DataFrame = {
+
+    // function to index embarked col
+    def embarkedIndexer(dataFrame: DataFrame): DataFrame = {
+
+      val indexer = new StringIndexer()
+        .setInputCol("Embarked")
+        .setOutputCol("Embarked_Indexed")
+
+      val indexed = indexer.fit(dataFrame).transform(dataFrame)
+
+      indexed
+
+    }
+
+    // function to index pclass col
+    def pclassIndexer(dataFrame: DataFrame): DataFrame = {
+
+      val indexer = new StringIndexer()
+        .setInputCol("Pclass")
+        .setOutputCol("Pclass_Indexed")
+
+      val indexed = indexer.fit(dataFrame).transform(dataFrame)
+
+      indexed
+
+    }
 
     // function to create age buckets
-    def AgeBucketizer(dataFrame: DataFrame): DataFrame = {
+    def ageBucketizer(dataFrame: DataFrame): DataFrame = {
 
       // define splits for age buckets
       val ageSplits = Array(0.0, 5.0, 18.0, 35.0, 60.0, 150.0)
@@ -28,7 +53,7 @@ object FeatureEngineering {
     }
 
     // function to create fare buckets
-    def FareBucketizer(dataFrame: DataFrame): DataFrame = {
+    def fareBucketizer(dataFrame: DataFrame): DataFrame = {
 
       // define splits for fare buckets
       val fareSplits = Array(0.0, 10.0, 20.0, 30.0, 50.0, 100.0, 1000.0)
@@ -45,7 +70,7 @@ object FeatureEngineering {
     }
 
     // function to convert sex to binary
-    def SexBinerizer(dataFrame: DataFrame): DataFrame = {
+    def sexBinerizer(dataFrame: DataFrame): DataFrame = {
 
       // add binary sex column
       val outputDataFrame = dataFrame.withColumn("Male", when(dataFrame("Sex").equalTo("male"), 1).otherwise(0))
@@ -56,27 +81,33 @@ object FeatureEngineering {
     }
 
     // function to create title field
-    def TitleCreator(dataFrame: DataFrame): DataFrame = {
+    def titleCreator(dataFrame: DataFrame): DataFrame = {
 
       // extract title field from name column
       val outputData = dataFrame
-        .withColumn("Title", split(split(dataFrame("Name"), ",")(1), "[.]")(0))
+        .withColumn("Title_String", split(split(dataFrame("Name"), ",")(1), "[.]")(0))
 
-      outputData.drop("Name")
+      val indexer = new StringIndexer()
+        .setInputCol("Title_String")
+        .setOutputCol("Title")
+
+      val indexed = indexer.fit(outputData).transform(outputData)
+
+      indexed.drop("Name")
 
     }
 
     // function to create family size field
-    def FamilySizeCreator(dataFrame: DataFrame): DataFrame = {
+    def familySizeCreator(dataFrame: DataFrame): DataFrame = {
 
       // create field indicating number of people in family
       val inputData = dataFrame.withColumn("FamilyMembers", dataFrame("Parch") + dataFrame("SibSp"))
 
       // create family size field by bucketing family size field
       val outputData = inputData.withColumn("FamilySize",
-        when(inputData("FamilyMembers")===0, "None")
-          .when(inputData("FamilyMembers")>0 && inputData("FamilyMembers")<4, "Small")
-          .otherwise("Large"))
+        when(inputData("FamilyMembers")===0, 1)
+          .when(inputData("FamilyMembers")>0 && inputData("FamilyMembers")<4, 2)
+          .otherwise(3))
 
       // return data frame with added family size field adn drop original columns used
       outputData.drop("FamilyMembers").drop("Parch").drop("SibSp")
@@ -84,7 +115,8 @@ object FeatureEngineering {
     }
 
     // define function to create dummy variables from input columns
-    def DummyCreator(dataFrame: DataFrame, dummyCols: Array[String]): DataFrame = {
+    // NOTE: this will be replaced with a one hot encoder
+    def dummyCreator(dataFrame: DataFrame, dummyCols: Array[String]): DataFrame = {
 
       // create temp immutable data frame to be used in for loop
       var data = dataFrame
@@ -121,8 +153,47 @@ object FeatureEngineering {
     // define cols to make dummy
     val dummyCols = Array[String]("Embarked", "Pclass", "Title", "FamilySize", "FareGroup", "AgeGroup")
 
+    val oneHotEncoder = new OneHotEncoderEstimator()
+      .setInputCols(Array[String]("Embarked_Indexed", "Pclass_Indexed", "Title", "FamilySize", "FareGroup", "AgeGroup"))
+      .setOutputCols(Array[String]("Embarked_Indexed_Vec", "Pclass_Indexed_Vec", "Title_Vec", "FamilySize_Vec", "FareGroup_Vec", "AgeGroup_Vec"))
+
+
     // create output data frame by transforming inout data frame with each function defined above
-    val outputData = DummyCreator(FamilySizeCreator(TitleCreator(AgeBucketizer(FareBucketizer(SexBinerizer(CleanData()))))), dummyCols)
+    // NOTE: this will be replaced with a pipeline
+    // SOON!
+    val oneHotModel = oneHotEncoder.fit(
+      pclassIndexer(
+        embarkedIndexer(
+          familySizeCreator(
+            titleCreator(
+              ageBucketizer(
+                fareBucketizer(
+                  sexBinerizer(dataFrame=dataFrame
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+
+    val outputData = oneHotModel.transform(
+      pclassIndexer(
+        embarkedIndexer(
+          familySizeCreator(
+            titleCreator(
+              ageBucketizer(
+                fareBucketizer(
+                  sexBinerizer(dataFrame=dataFrame
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
 
     // return data frame with added features
     outputData

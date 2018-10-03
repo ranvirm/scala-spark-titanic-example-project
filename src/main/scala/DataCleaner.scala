@@ -1,22 +1,23 @@
-import DataSourcer.RawData
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.{mean, round}
 
-// Clean raw data frames here - format columns, replace missing values etc.
+// clean raw data frames here - format columns, replace missing values etc.
 
 object DataCleaner {
 
   // function to produce a clean data frame from a raw data frame
-  def CleanData(): DataFrame = {
+  def cleanData(dataFrame: DataFrame): DataFrame = {
 
     // def function to format data correctly
     def formatData(dataFrame: DataFrame): DataFrame = {
 
       dataFrame
+        .withColumn("Survived", dataFrame("Survived").cast("Int"))
         .withColumn("Age", dataFrame("Age").cast("Double"))
         .withColumn("Fare", dataFrame("Fare").cast("Double"))
         .withColumn("Parch", dataFrame("Parch").cast("Double"))
         .withColumn("SibSp", dataFrame("SibSp").cast("Double"))
+        .withColumnRenamed("Survived", "label")
 
     }
 
@@ -47,7 +48,7 @@ object DataCleaner {
     }
 
     // format raw data
-    val formattedData = formatData(RawData())
+    val formattedData = formatData(dataFrame)
 
     // fill in missing values for age, fare and embarked and drop unnecessary columns
     val outputData = formattedData
@@ -62,6 +63,5 @@ object DataCleaner {
     outputData
 
   }
-
 
 }

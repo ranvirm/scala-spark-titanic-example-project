@@ -1,7 +1,8 @@
+// do your data wrangling here - transformations, aggregations, joins etc.
+// not used in this project
 
-// Do your data wrangling here - transformations, aggregations, joins etc.
 object DataWrangler {
 
-  def WrangledData(): Unit = {}
+  def wrangleData(): Unit = {}
 
 }

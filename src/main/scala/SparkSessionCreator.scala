@@ -5,9 +5,13 @@ import org.apache.spark.sql.SparkSession
 
 object SparkSessionCreator {
 
-  def Spark(): SparkSession = {
+  def sparkSessionCreate(): SparkSession = {
 
-    SparkSession.builder().master("local").appName("ScalaProjectExample").getOrCreate()
+    SparkSession
+      .builder()
+      .master("local[*]")
+      .appName("scala-spark-titanic-example-project")
+      .getOrCreate()
 
   }
 
