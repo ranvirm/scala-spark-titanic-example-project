@@ -4,7 +4,7 @@ This project serves as an example of a scala-spark project using the Kaggle Tita
 ## Usage
 1. clone repository to local directory
 2. cd into directory
-3. compile the project with sbt using:
+3. compile the project with [sbt](https://www.scala-sbt.org/) using:
 ```
 sbt package
 ```
@@ -12,7 +12,7 @@ sbt package
  ```
  spark-submit --class ModelTrain --master local[*] --driver-memory 4G target/scala-2.11/scalasparktitanicproject_2.11-1.0.jar
  ```
-4. Train model pipeline using:
+5. Train model pipeline using:
  ```
  spark-submit --class ModelPredict--master local[*] --driver-memory 4G target/scala-2.11/scalasparktitanicproject_2.11-1.0.jar
  ```
