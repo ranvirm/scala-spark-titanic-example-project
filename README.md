@@ -2,9 +2,9 @@
 This project serves as an example of a scala-spark project using the Kaggle Titanic dataset
 
 ## Usage
-1. clone repository to local directory
+1. Clone repository to local directory
 2. cd into directory
-3. compile the project with [sbt](https://www.scala-sbt.org/) using:
+3. Compile the project with [sbt](https://www.scala-sbt.org/) using:
 ```
 sbt package
 ```
