@@ -8,13 +8,13 @@ object ModelPredict {
     val spark = SparkSessionCreator.sparkSessionCreate()
 
     // train data
-    val rawTestData = DataSourcer.rawTrainData(sparkSession = spark)
+    val rawTestData = DataSourcer.rawTestData(sparkSession = spark)
 
     // clean train data
-    val cleanTrainData = DataCleaner.cleanData(dataFrame = rawTestData)
+    val cleanTestData = DataCleaner.cleanData(dataFrame = rawTestData)
 
     // feature data
-    val featureTestData = FeatureEngineering.featureData(dataFrame = cleanTrainData)
+    val featureTestData = FeatureEngineering.featureData(dataFrame = cleanTestData)
 
     // load fitted pipeline
     val fittedPipeline = PipelineModel.load("./pipelines/fitted-pipeline")
