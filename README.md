@@ -14,7 +14,7 @@ sbt package
  ```
 5. Train model pipeline using:
  ```
- spark-submit --class ModelPredict--master local[*] --driver-memory 4G target/scala-2.11/scalasparktitanicproject_2.11-1.0.jar
+ spark-submit --class ModelPredict --master local[*] --driver-memory 4G target/scala-2.11/scalasparktitanicproject_2.11-1.0.jar
  ```
 
 ## Notes
