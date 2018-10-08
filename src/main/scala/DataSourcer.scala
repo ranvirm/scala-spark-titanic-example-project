@@ -19,7 +19,7 @@ object DataSourcer {
     // load train data from local
     // populate label col - not included in raw test data
     sparkSession.read.option("header", "true").csv("./src/main/resources/test.csv")
-      .withColumn("label", lit("0"))
+      .withColumn("Survived", lit("0"))
 
   }
 
